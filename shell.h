@@ -11,19 +11,28 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <signal.h>
 
-#define BUF_SIZE 1024
-#define WRITE_BUFFER_SIZE 4096
-#define HISTORY_FILE ".simple_shell_history"
+/* read/write buffer */
+#define READ_BUF_SIZE 1024
+#define WRITE_BUFFER_SIZE 1024
+#define BUF_FLUSH -1
+
 #define HIST_MAX 4096
 #define HIST_FILE ".simple_shell_history"
-#define BUF_FLUSH -2
-#define BUFFER_FLUSH '\0'
-#define CMD_NORMAL 0
-#define CMD_AND 1
-#define CMD_OR 2
+
+/*command chaining */
+#define CMD_NORM 0
+#define CMD_OR 1
+#define CMD_AND 2
 #define CMD_CHAIN 3
+
+/* for convert_number() */
+#define CONVERT_LOWERCASE	1
+#define CONVERT_UNSIGNED	2
+
+/* 1 if using system getline() */
+#define USE_GETLINE 0
+#define USE_STRTOK 0
 
 extern char **environ;
 
@@ -101,20 +110,125 @@ typedef struct builtin
 } builtin_table;
 
 
-/* err.c */
-void eputs(char *str);
-int eputchar(char c);
-int putfd(char c, int fd);
-int putsfd(char *str, int fd);
+/* error.c */
+void _eputs(char *str);
+int _eputchar(char c);
+int _putfd(char c, int fd);
+int _putsfd(char *str, int fd);
 
 /* atoi_shell.c */
-int is_interactive(info_t *info);
+int interactive(info_t *info);
 int is_delim(char c, char *delim);
-int is_alpha(int c);
-int str_to_int(char *s);
+int _isalpha(int c);
+int _atoi(char *s);
 
 /* exit.c */
-char *cp_strN(char *dest, const char *src, int n);
-char *cat_strN(char *dest, const char *src, int n);
-char *find_char(const char *s, char c);
+char *_strncpy(char *, char *, int);
+char *_strncat(char *, char *, int);
+char *_strchr(char *, char);
+
+/* environ.c */
+char *_getenv(info_t *, const char *);
+int _myenv(info_t *);
+int _mysetenv(info_t *);
+int _myunsetenv(info_t *);
+int populate_env_list(info_t *);
+
+/* getenv.c */
+char **get_environ(info_t *);
+int _unsetenv(info_t *info, char *var);
+int _setenv(info_t *info, char *var, char *value);
+
+/* getinfo.c */
+void clear_info(info_t *);
+void set_info(info_t *, char **);
+void free_info(info_t *, int);
+
+/* getline.c */
+ssize_t get_input(info_t *);
+int _getline(info_t *, char **, size_t *);
+void sigintHandler(int);
+
+/* builtin.c */
+int _myexit(info_t *);
+int _mycd(info_t *);
+int _myhelp(info_t *);
+
+/* builtin1.c */
+int _myhistory(info_t *);
+int _myalias(info_t *);
+
+/* list1.c */
+size_t list_len(const list_t *);
+char **list_to_strings(list_t *);
+size_t print_list(const list_t *);
+list_t *node_starts_with(list_t *, char *, char);
+ssize_t get_node_index(list_t *, list_t *);
+
+/* list_shell.c */
+list_t *add_node(list_t **, const char *, int);
+list_t *add_node_end(list_t **, const char *, int);
+size_t print_list_str(const list_t *);
+int delete_node_at_index(list_t **, unsigned int);
+void free_list(list_t **);
+
+/* string_shell.c */
+int _strlen(char *);
+int _strcmp(char *, char *);
+char *starts_with(const char *, const char *);
+char *_strcat(char *, char *);
+
+/* string.c */
+char *_strcpy(char *, char *);
+char *_strdup(const char *);
+void _puts(char *);
+int _putchar(char);
+
+/* err_shell.c */
+int _erratoi(char *);
+void print_error(info_t *, char *);
+int print_d(int, int);
+char *convert_number(long int, int, int);
+void remove_comments(char *);
+
+/* shell_loop.c */
+int hsh(info_t *, char **);
+int find_builtin(info_t *);
+void find_cmd(info_t *);
+void fork_cmd(info_t *);
+
+/* parser.c */
+int is_cmd(info_t *, char *);
+char *dup_chars(char *, int, int);
+char *find_path(info_t *, char *, char *);
+
+/* vars.c */
+int is_chain(info_t *, char *, size_t *);
+void check_chain(info_t *, char *, size_t *, size_t, size_t);
+int replace_alias(info_t *);
+int replace_vars(info_t *);
+int replace_string(char **, char *);
+
+/* tokenizer.c */
+char **strtow(char *, char *);
+char **strtow2(char *, char);
+
+/* realloc.c */
+char *_memset(char *, char, unsigned int);
+void ffree(char **);
+void *_realloc(void *, unsigned int, unsigned int);
+
+/* memory.c */
+int bfree(void **);
+
+/* history.c */
+char *get_history_file(info_t *info);
+int write_history(info_t *info);
+int read_history(info_t *info);
+int build_history_list(info_t *info, char *buf, int linecount);
+int renumber_history(info_t *info);
+
+/* loophsh.c */
+int loophsh(char **);
+
 #endif

@@ -1,13 +1,13 @@
 #include "shell.h"
 
 /**
- * is_interactive - checks if the shell is in interactive mode
+ * interactive - checks if the shell is in interactive mode
  * @info: struct address
  *
  * Return: 1 if interactive mode, 0 otherwise
  */
 
-int is_interactive(info_t *info)
+int interactive(info_t *info)
 
 {
 	return ((isatty(STDIN_FILENO) && info->readfd <= 2) ? 1 : 0);
@@ -38,24 +38,24 @@ int is_delim(char c, char *delim)
 }
 
 /**
- * is_alpha - checks if a character is alphabetic
+ * _isalpha - checks if a character is alphabetic
  * @c: The character to check
  * Return: 1 if c is alphabetic, 0 otherwise
  */
 
-int is_alpha(int c)
+int _isalpha(int c)
 
 {
 	return (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) ? 1 : 0);
 }
 
 /**
- * str_to_int - converts a string to an integer
+ * _atoi - converts a string to an integer
  * @s: the string to be converted
  * Return: 0 if no numbers in string, converted number otherwise
  */
 
-int str_to_int(char *s)
+int _atoi(char *s)
 
 {
 	int sign = 1;
